@@ -3,7 +3,7 @@
 # MUST be customized
 APITOKEN="..."    # see LeanIX -> Admin -> Developers -> API Tokens
 WORKSPACEID="..." # see LeanIX -> Admin -> Developers -> API Tokens
-BASEURL="https://app.leanix.net/services/pathfinder/v1/exports" # change the host name if required
+HOSTNAME="https://app.leanix.net" # change the host name if required
 CURL="/usr/bin/curl -s" # if curl is not located in /usr/bin, change accordingly
 
 # CAN be customized
@@ -11,8 +11,8 @@ EXPORT_FILENAME="export-`date '+%Y-%m-%d'`.xlsx"
 SURVEY_FILENAME="poll_result" # for each survery run, we append the id and the survey run + ".xlsx"
 
 # SHOULD NOT be customized (only in case of API changes)
-BASEURL="$BASESERVICE/services/pathfinder/v1/exports"
-POLLURL="$BASESERVICE/services/poll/v2"
+BASEURL="$HOSTNAME/services/pathfinder/v1/exports"
+POLLURL="$HOSTNAME/services/poll/v2"
 EXPORTSURL="$BASEURL?exportType=SNAPSHOT\&pageSize=40\&sorting=createdAt\&sortDirection=DESC"
 
 function getAccessToken() {
