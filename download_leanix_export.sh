@@ -8,8 +8,11 @@ CURL="/usr/bin/curl -s" # if curl is not located in /usr/bin, change accordingly
 
 # CAN be customized
 EXPORT_FILENAME="export-`date '+%Y-%m-%d'`.xlsx"
+SURVEY_FILENAME="poll_result" # for each survery run, we append the id and the survey run + ".xlsx"
 
 # SHOULD NOT be customized (only in case of API changes)
+BASEURL="$BASESERVICE/services/pathfinder/v1/exports"
+POLLURL="$BASESERVICE/services/poll/v2"
 EXPORTSURL="$BASEURL?exportType=SNAPSHOT\&pageSize=40\&sorting=createdAt\&sortDirection=DESC"
 
 function getAccessToken() {
@@ -43,5 +46,31 @@ eval ${CURL_AUTH} \
   --url $URL > $EXPORT_FILENAME
 
 echo "Saved to file $EXPORT_FILENAME."
-echo "Verifying - should be an xlsx (zip) file:"
 file $EXPORT_FILENAME
+
+
+echo "Downloading surveys..."
+SURVEYSURL="$POLLURL/polls?workspaceId=$WORKSPACEID"
+SURVEY_IDS=`eval ${CURL_AUTH} \
+  --url "$SURVEYSURL" | python -c 'import sys, json;
+res = json.load(sys.stdin)["data"];
+for poll in res:
+	print poll["id"]+" ";'`
+
+for id in $SURVEY_IDS; do
+	SURVEY_RUNS_URL="$POLLURL/polls/$id/pollRuns?workspaceId=$WORKSPACEID"
+	SURVEY_RUNS=`eval ${CURL_AUTH} \
+	  --url "$SURVEY_RUNS_URL" | python -c 'import sys, json;
+res = json.load(sys.stdin)["data"];
+for runs in res:
+	print runs["id"]+" ";'`
+	for run in $SURVEY_RUNS; do
+		echo Survey $id, run $run
+		URL="$POLLURL/pollRuns/$run/poll_results.xlsx?workspaceId=$WORKSPACEID"
+		
+		eval ${CURL_AUTH} \
+		  --header 'Accept: application/octet-stream' \
+		  --url $URL > "$SURVEY_FILENAME-$id-$run.xlsx"
+		file "$SURVEY_FILENAME-$id-$run.xlsx"
+	done
+done
